@@ -1,160 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-   <link rel="icon" href="./assets/logo.png">
-    <title>Spotify-Web Player:Music for everyone</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pro Music App</title>
+<style>
+body,html{margin:0;padding:0;font-family:'Arial',sans-serif;background:#121212;color:white;scroll-behavior:smooth;transition:background 0.5s;}
+.app{display:flex;min-height:100vh;}
+.sidebar{width:100px;background:#181818;padding:20px;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;z-index:10;transition:background 0.5s;}
+.sidebar h2{color:#1DB954;font-size:20px;margin-bottom:30px;}
+.sidebar ul{list-style:none;padding:0;}
+.sidebar ul li{padding:12px 0;cursor:pointer;transition:0.3s;}
+.sidebar ul li:hover{color:#1DB954;}
+.top-controls{position:fixed;left:150px;top:0;right:0;padding:10px 20px;display:flex;gap:10px;align-items:center;z-index:15;background:#121212;transition:background 0.5s;}
+#search{flex:1;padding:10px;border-radius:5px;border:none;background:#1e1e1e;color:white;font-size:16px;}
+#theme-toggle{padding:10px 15px;background:#1DB954;border:none;color:white;border-radius:5px;cursor:pointer;}
+.main{margin-left:150px;padding:80px 20px 160px 20px;overflow-y:auto;}
+.section-title{font-size:22px;color:#1DB954;margin-bottom:10px;opacity:0;transform:translateY(20px);transition:0.7s;}
+.row-container{position:relative;margin-bottom:30px;}
+.arrow{position:absolute;top:50%;transform:translateY(-50%);font-size:30px;background:rgba(0,0,0,0.5);border:none;color:white;padding:5px 10px;cursor:pointer;border-radius:50%;z-index:5;display:none;transition:0.3s;}
+.row-container:hover .arrow{display:block;}
+.arrow.left{left:0;}
+.arrow.right{right:0;}
+.song-row{display:flex;gap:20px;overflow-x:auto;padding-bottom:10px;scroll-behavior:smooth;scroll-snap-type:x mandatory;}
+.song-row::-webkit-scrollbar{height:8px;}
+.song-row::-webkit-scrollbar-thumb{background:#1DB954;border-radius:4px;}
+.song-card{min-width:180px;background:#1e1e1e;border-radius:15px;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;align-items:center;opacity:0;transform:translateY(20px);position:relative;box-shadow:0 4px 12px rgba(0,0,0,0.5);transition:transform 0.4s,box-shadow 0.4s,opacity 0.6s;scroll-snap-align:start;}
+.song-card img{width:100%;height:180px;object-fit:cover;border-bottom:1px solid #333;transition:transform 0.5s;}
+.song-card h4,.song-card p{margin:5px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:90%;}
+.song-card:hover{transform:scale(1.08);box-shadow:0 12px 20px rgba(0,0,0,0.7);}
+.song-card:hover img{transform:scale(1.1);}
+.song-card .overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(to top,rgba(0,0,0,0.6),rgba(0,0,0,0));opacity:0;transition:opacity 0.3s;border-radius:15px;}
+.song-card .play-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:35px;color:#1DB954;opacity:0;transition:opacity 0.3s,transform 0.3s;}
+.song-card:hover .overlay,.song-card:hover .play-overlay{opacity:1;transform:translate(-50%,-50%) scale(1.2);}
+.song-card .heart-icon{position:absolute;top:8px;right:8px;font-size:20px;color:white;cursor:pointer;transition:transform 0.3s;}
+.song-card .heart-icon.favorited{color:#1DB954;transform:scale(1.3);}
+.song-card canvas{width:100%;height:30px;position:absolute;bottom:0;left:0;display:none;}
+.player-bar{position:fixed;bottom:10px;left:160px;right:20px;background:linear-gradient(90deg,#282828,#1f1f1f);padding:10px 20px;display:flex;justify-content:space-between;align-items:center;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.7);height:100px;border-radius:15px;transition:background 0.5s;}
+.player-info{display:flex;align-items:center;gap:15px;flex:1;min-width:0;}
+.player-info img{width:60px;height:60px;border-radius:50%;transition:transform 0.5s linear;}
+.player-info.playing img{animation:rotate 10s linear infinite;}
+@keyframes rotate{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+.controls{display:flex;align-items:center;gap:15px;}
+.controls button{background:#1DB954;border:none;padding:12px;border-radius:50%;cursor:pointer;transition:0.3s;font-size:16px;box-shadow:0 0 10px #1DB954;}
+.controls button:hover{box-shadow:0 0 20px #1ed760;transform:scale(1.2);}
+#progress{width:200px;height:5px;border-radius:5px;cursor:pointer;background:#333;}
+.volume-container{display:flex;align-items:center;gap:5px;}
+.volume-container input[type=range]{width:80px;height:5px;border-radius:5px;cursor:pointer;background:#333;}
+.fade-in{opacity:1!important;transform:translateY(0)!important;}
+#library{margin-top:50px;}
+#visualizer{width:200px;height:50px;background:transparent;}
+</style>
 </head>
 <body>
- <div class="main">
-    <div class="sidebar">
-        <div class="nav">
-            <div class="nav-option"style="opacity: 1;">
-                <i class="fa-solid fa-house"></i>
-                 <a href="#">Home</a>
-
-
-            </div>
-              <div class="nav-option">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                 <a href="#">Search</a>
-
-
-            </div>
-
-        </div>
-        <div class="library">
-            <div class="options">
-                <div class="lib-option nav-option">
-               <img src="./assets/library_icon.png">
-                 <a href="#">Your Library</a>
-            </div>
-            <div class="icons">
-                <i class="fa-solid fa-plus"></i>
-                <i class="fa-solid fa-arrow-right"></i>
-            </div>
-            </div>
-            <div class="lib-box">
-                <div class="box">
-                    <p class="box-p1">Create your first playlist</p>
-                    <p class="box-p2">It's easy, we'll help you</p>
-                    <button class="badge">Create playlist</button>
-                </div>
-
-                  <div class="box">
-                    <p class="box-p1">Let's find some podcasts to follow</p>
-                    <p class="box-p2">We'll keep you updated on new episodes</p>
-                    <button class="badge">Browse podcasts</button>
-                </div>
-            </div>
-        </div>
-    </div> 
-    <div class="main-content">
-       <div class="sticky-nav">
-        <div class="sticky-nav-icons">
- <img src="./assets/backward_icon.png">
-       <img src="./assets/forward_icon (1).png" class="hide">
-        </div>
-      <div class="sticky-nav-options">
-<button class="badge nav-item hide">Explore Premium</button>
-  <button class="badge nav-item dark-badge"><i class="fa-regular fa-circle-down" style="margin-right: 5px;"></i>Install App</button>
-  <i class="fa-regular fa-user nav-item"></i>
-      </div>
- 
-
-       </div> 
-      
-        <h2>Recently Played</h2>
-        <div class="cards-container">
-            <div class="card">
-                <img src="assets/card1img.jpeg" class="card-img">
-                <p class="card-title">Top 50 - Global</p>
-                <p class="card-info">Your daily updates of the most played...</p>
-           
-        </div>
-       </div>
-<h2>Trending now near you</h2>
-       <section>
-        
-        <div class="cards-container1">
-            <div class="card">
-                <img src="assets/card2img.jpeg" class="card-img">
-                <p class="card-title">Top 50 - Global</p>
-                <p class="card-info">Your daily updates of the most played...</p>
-           
-        </div>
-       </div>
-
-        
-        <div class="cards-container2">
-            <div class="card">
-                <img src="assets/card3img.jpeg" class="card-img">
-                <p class="card-title">Top 50 - Global</p>
-                <p class="card-info">Your daily updates of the most played...</p>
-           
-        </div>
-       </div>
-
-
-        
-        <div class="cards-container3">
-            <div class="card">
-                <img src="assets/card4img.jpeg" class="card-img">
-                <p class="card-title">Top 50 - Global</p>
-                <p class="card-info">Your daily updates of the most played...</p>
-           
-        </div>
-       </div>
-
-    
-        <div class="cards-container4">
-            <div class="card">
-                <img src="assets/card5img.jpeg" class="card-img">
-                <p class="card-title">Top 50 - Global</p>
-                <p class="card-info">Your daily updates of the most played...</p>
-           
-        </div>
-
-        
-        <div class="cards-container5">
-            <div class="card">
-                <img src="assets/card6img.jpeg" class="card-img">
-                <p class="card-title">Top 50 - Global</p>
-                <p class="card-info">Your daily updates of the most played...</p>
-           
-        </div>
-
-        
-        <div class="cards-container6">
-            <div class="card">
-                <img src="assets/card7img.jpeg" class="card-img">
-                <p class="card-title">Top 50 - Global</p>
-                <p class="card-info">Your daily updates of the most played...</p>
-           
-        </div>
-
-
-
-
-
-
-
-
-
-
-
-
-    </div>
-
-    </section>
-       
-    <div class="music-player">music player</div>
-    </div>
+<div class="app">
+<div class="sidebar">
+<h2>Ganesh's Music Player</h2>
+<ul>
+<li id="home-btn">🏠 Home</li>
+<li id="search-btn">🔍 Search</li>
+<li id="library-btn">📚 Library</li>
+</ul>
+</div>
+<div class="top-controls">
+<input type="text" id="search" placeholder="Search songs...">
+<button id="theme-toggle">Toggle Theme</button>
+</div>
+<div class="main">
+<div id="home-section">
+<div class="section-title">Trending Now (Hindi)</div>
+<div class="row-container">
+<button class="arrow left" onclick="scrollRow('trending',-1)">❮</button>
+<div class="song-row" id="trending"></div>
+<button class="arrow right" onclick="scrollRow('trending',1)">❯</button>
+</div>
+<div class="section-title">Top Charts (Marathi)</div>
+<div class="row-container">
+<button class="arrow left" onclick="scrollRow('topcharts',-1)">❮</button>
+<div class="song-row" id="topcharts"></div>
+<button class="arrow right" onclick="scrollRow('topcharts',1)">❯</button>
+</div>
+<div class="section-title">New Releases (English)</div>
+<div class="row-container">
+<button class="arrow left" onclick="scrollRow('newreleases',-1)">❮</button>
+<div class="song-row" id="newreleases"></div>
+<button class="arrow right" onclick="scrollRow('newreleases',1)">❯</button>
+</div>
+</div>
+<div id="library"></div>
+</div>
+</div>
+<div class="player-bar">
+<div class="player-info">
+<img id="cover" src="" alt="Album">
+<div>
+<h4 id="song-title">Song Title</h4>
+<p id="artist">Artist</p>
+</div>
+</div>
+<canvas id="visualizer"></canvas>
+<div class="controls">
+<button id="shuffle">🔀</button>
+<button id="prev">⏮</button>
+<button id="play">▶️</button>
+<button id="next">⏭</button>
+<button id="repeat">🔁</button>
+<input type="range" id="progress" min="0" max="100" value="0">
+<div class="volume-container">
+<span>🔊</span>
+<input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+</div>
+</div>
+</div>
+<audio id="audio"></audio>
+<script>
+const trendingSongs=[{title:"Kesariya",artist:"Arijit Singh",cover:"images/kesariya.jpg",src:"songs/kesariya.mp3"},{title:"Jalebi Baby",artist:"Tesher",cover:"images/jalebi baby.jpg",src:"songs/jalebi baby.mp3"},{title:"Tum Hi Aana",artist:"Jubin Nautiyal",cover:"images/tum hi aana.jpg",src:"songs/tum hi aana.mp3"},{title:"Rataan Lambiyan",artist:"Tanishk Bagchi",cover:"images/raataan lambiyan.jpg",src:"songs/raataan lambiyan.mp3"},{title:"Raataan",artist:"Jubin Nautiyal",cover:"images/raatan.jpg",src:"songs/raatan.mp3"},{title:"Shayad",artist:"Arijit Singh",cover:"images/shayad.jpg",src:"songs/shayad.mp3"}];
+const topCharts=[{title:"Sang Sang",artist:"Ajay-Atul",cover:"images/sang sang.jpg",src:"songs/sang sang.mp3"},{title:"Manaacha Gaan",artist:"Avadhoot Gupte",cover:"images/manaacha gaan.jpg",src:"songs/manaacha gaan.mp3"},{title:"Hi Poli Saajuk",artist:"Ajay-Atul",cover:"images/hi poli sajuk.jpg",src:"songs/hi poli sajuk.mp3"},{title:"Majha Navra Tujhi Bayko",artist:"Various",cover:"images/majha navra tujhi bayko.jpg",src:"songs/majha navra tujhi bayko.mp3"},{title:"Jai Jai Maharashtra Majha",artist:"Various",cover:"images/maharashtra.jpg",src:"songs/maharashtra.mp3"},{title:"Zingaat",artist:"Ajay-Atul",cover:"images/zingaat.jpg",src:"songs/zingaat.mp3"}];
+const newReleases=[{title:"Blinding Lights",artist:"The Weeknd",cover:"images/blinding lights.jpg",src:"songs/blinding lights.mp3"},{title:"Levitating",artist:"Dua Lipa",cover:"images/levi.jpg",src:"songs/levi.mp3"},{title:"Peaches",artist:"Justin Bieber",cover:"images/peaches.jpg",src:"songs/peaches.mp3"},{title:"Bad Habits",artist:"Ed Sheeran",cover:"images/badhabits.jpeg",src:"songs/badhabits.mp3"},{title:"Stay",artist:"The Kid LAROI",cover:"images/stay.jpg",src:"songs/stay.mp3"},{title:"Save Your Tears",artist:"The Weeknd",cover:"images/tears.jpg",src:"songs/tears.mp3"}];
+const audio=document.getElementById('audio'),coverEl=document.getElementById('cover'),titleEl=document.getElementById('song-title'),artistEl=document.getElementById('artist'),playBtn=document.getElementById('play'),prevBtn=document.getElementById('prev'),nextBtn=document.getElementById('next'),shuffleBtn=document.getElementById('shuffle'),repeatBtn=document.getElementById('repeat'),progress=document.getElementById('progress'),volume=document.getElementById('volume'),playerInfo=document.querySelector('.player-info'),canvas=document.getElementById('visualizer'),ctx=canvas.getContext('2d');
+canvas.width=200;canvas.height=50;
+let playlist=[...trendingSongs,...topCharts,...newReleases],currentSong=0,shuffle=false,repeat=false,lastClicked=-1,favorites=[];
+function loadSong(index){const song=playlist[index];audio.src=song.src;coverEl.src=song.cover;titleEl.textContent=song.title;artistEl.textContent=song.artist;}
+function playSong(){audio.play();playBtn.textContent='⏸';playerInfo.classList.add('playing');}
+function pauseSong(){audio.pause();playBtn.textContent='▶️';playerInfo.classList.remove('playing');}
+playBtn.addEventListener('click',()=>{audio.paused?playSong():pauseSong();});
+function nextSong(){if(shuffle){currentSong=Math.floor(Math.random()*playlist.length);}else{currentSong=(currentSong+1)%playlist.length;}loadSong(currentSong);playSong();}
+function prevSong(){currentSong=(currentSong-1+playlist.length)%playlist.length;loadSong(currentSong);playSong();}
+nextBtn.addEventListener('click',nextSong);prevBtn.addEventListener('click',prevSong);
+shuffleBtn.addEventListener('click',()=>{shuffle=!shuffle;shuffleBtn.style.color=shuffle?'#1DB954':'white';});
+repeatBtn.addEventListener('click',()=>{repeat=!repeat;repeatBtn.style.color=repeat?'#1DB954':'white';});
+audio.addEventListener('timeupdate',()=>{if(audio.duration){progress.value=(audio.currentTime/audio.duration)*100;}});
+progress.addEventListener('input',()=>{audio.currentTime=(progress.value/100)*audio.duration;});
+volume.addEventListener('input',()=>{audio.volume=volume.value;});
+audio.addEventListener('ended',()=>{repeat?loadSong(currentSong)&&playSong():nextSong();});
+function renderRow(rowId,songsArray){const container=document.getElementById(rowId);container.innerHTML='';songsArray.forEach(song=>{const card=document.createElement('div');card.className='song-card';card.innerHTML=`<img src="${song.cover}"><div class="overlay"></div><h4>${song.title}</h4><p>${song.artist}</p><div class="play-overlay">▶️</div><div class="heart-icon">❤</div><canvas></canvas>`;const heart=card.querySelector('.heart-icon');const miniCanvas=card.querySelector('canvas');heart.addEventListener('click',(e)=>{e.stopPropagation();favorites.includes(song)?favorites=favorites.filter(f=>f!==song):favorites.push(song);heart.classList.toggle('favorited');updateLibrary();});card.addEventListener('click',()=>{lastClicked===playlist.indexOf(song)?(audio.paused?playSong():pauseSong()):(currentSong=playlist.indexOf(song),loadSong(currentSong),playSong(),lastClicked=currentSong);});card.addEventListener('mouseenter',()=>{miniCanvas.style.display='block';});card.addEventListener('mouseleave',()=>{miniCanvas.style.display='none';});container.appendChild(card);});}
+function updateLibrary(){const lib=document.getElementById('library');lib.innerHTML="<h2 style='color:#1DB954'>Library</h2>";if(favorites.length===0){lib.innerHTML+="<p>No favorite songs yet</p>";}else{favorites.forEach(song=>{const div=document.createElement('div');div.style.display='flex';div.style.alignItems='center';div.style.margin='10px 0';div.innerHTML=`<img src='${song.cover}' style='width:60px;height:60px;border-radius:10px;margin-right:10px'><div><h4>${song.title}</h4><p>${song.artist}</p></div>`;lib.appendChild(div);});}}
+function observeFade(){const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{entry.isIntersecting&&entry.target.classList.add('fade-in');});},{threshold:0.1});document.querySelectorAll('.song-card, .section-title').forEach(el=>observer.observe(el));}
+function scrollRow(rowId,direction){document.getElementById(rowId).scrollBy({left:direction*300,behavior:'smooth'});}
+renderRow('trending',trendingSongs);renderRow('topcharts',topCharts);renderRow('newreleases',newReleases);observeFade();loadSong(currentSong);
+const searchInput=document.getElementById('search');searchInput.addEventListener('input',()=>{const term=searchInput.value.toLowerCase();document.querySelectorAll('.song-card').forEach(card=>{const title=card.querySelector('h4').textContent.toLowerCase();const artist=card.querySelector('p').textContent.toLowerCase();card.style.display=(title.includes(term)||artist.includes(term))?'flex':'none';});});
+const themeToggle=document.getElementById('theme-toggle');themeToggle.addEventListener('click',()=>{if(document.body.classList.contains('light-theme')){document.body.classList.remove('light-theme');document.body.style.background='#121212';document.body.style.color='white';document.querySelectorAll('.sidebar').forEach(s=>s.style.background='#181818');document.querySelectorAll('.player-bar').forEach(p=>p.style.background='linear-gradient(90deg,#282828,#1f1f1f)');document.querySelectorAll('.top-controls').forEach(t=>t.style.background='#121212');}else{document.body.classList.add('light-theme');document.body.style.background='#f0f0f0';document.body.style.color='#121212';document.querySelectorAll('.sidebar').forEach(s=>s.style.background='#e0e0e0');document.querySelectorAll('.player-bar').forEach(p=>p.style.background='linear-gradient(90deg,#ddd,#ccc)');document.querySelectorAll('.top-controls').forEach(t=>t.style.background='#f0f0f0');}});
+const audioCtx=new (window.AudioContext||window.webkitAudioContext)(),analyser=audioCtx.createAnalyser(),source=audioCtx.createMediaElementSource(audio);source.connect(analyser);analyser.connect(audioCtx.destination);analyser.fftSize=64;const bufferLength=analyser.frequencyBinCount,dataArray=new Uint8Array(bufferLength);
+function animateVisualizer(){ctx.clearRect(0,0,canvas.width,canvas.height);analyser.getByteFrequencyData(dataArray);let barWidth=canvas.width/bufferLength;for(let i=0;i<bufferLength;i++){let barHeight=dataArray[i]/2;ctx.fillStyle=`hsl(${i*10},100%,50%)`;ctx.fillRect(i*barWidth,canvas.height-barHeight,barWidth-1,barHeight);}requestAnimationFrame(animateVisualizer);}
+animateVisualizer();
+function animateMiniCanvas(miniCanvas){const ctxMini=miniCanvas.getContext('2d');function drawMini(){ctxMini.clearRect(0,0,miniCanvas.width,miniCanvas.height);analyser.getByteFrequencyData(dataArray);let w=miniCanvas.width/bufferLength;for(let i=0;i<bufferLength;i++){let h=dataArray[i]/4;ctxMini.fillStyle=`hsl(${i*10},80%,60%)`;ctxMini.fillRect(i*w,miniCanvas.height-h,w-1,h);}requestAnimationFrame(drawMini);}drawMini();}
+document.querySelectorAll('.song-card canvas').forEach(c=>animateMiniCanvas(c));
+</script>
 </body>
 </html>
