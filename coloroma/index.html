@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+<body>  
+  <div id="parent">
+    <div id="child1">
+        <h1 id="heading">Coloroma</h1>
+        <textarea name="area" id="area" cols="5" rows="15" placeholder="Type Something..."></textarea>
+    </div>
+    <div id="child2">
+        
+    </div>
+    <div id="child3">
+        <button id="download-btn">Download</button>
+    </div>
+    <div id="child4">
+<div id="bgcolor">
+    <fieldset><h2>Choose Background Color</h2></fieldset>
+    <button class="btn" style="background-color: red;"onclick="changeBgColor('red')"></button>
+    <button class="btn" style="background-color:green;"onclick="changeBgColor('green')"></button>
+     <button class="btn" style="background-color: yellow;"onclick="changeBgColor('yellow')"></button>
+    <button class="btn" style="background-color:blue;"onclick="changeBgColor('blue')"></button>
+    <button class="btn" style="background-color:black;"onclick="changeBgColor('black')"></button>
+    <input type="color" oninput="changeBgColor(event.target.value)">
+
+</div>
+<div id="textcolor">
+    <fieldset><br><h2>Choose Text Color</h2><br></fieldset><br>
+   <button class="btn" style="background-color: red;"onclick="changeTextColor('red')"></button>
+   <button class="btn" style="background-color: green;"onclick="changeTextColor('green')"></button>
+   <button class="btn" style="background-color: yellow;"onclick="changeTextColor('yellow')"></button>
+    <button class="btn" style="background-color: blue;"onclick="changeTextColor('blue')"></button>
+      <button class="btn" style="background-color: white;"onclick="changeTextColor('white')"></button>
+        <input type="color" oninput="changeTextColor(event.target.value)">
+</div>
+<div id="bgimage">
+    <fieldset><h2>Choose Background Image</h2></fieldset>
+
+    <button class="btn" onclick="changeBgImage('https://cdn.pixabay.com/photo/2023/02/12/13/16/dog-7785066_1280.jpg')">
+        <img src="https://cdn.pixabay.com/photo/2023/02/12/13/16/dog-7785066_1280.jpg" alt="img1" width="35px" height="35px"border-radius="100%"
+        margin-top="10px">
+    </button>
+
+    <button class="btn" onclick="changeBgImage('https://cdn.pixabay.com/photo/2022/11/14/14/13/lake-7591750_1280.jpg')">
+        <img src="https://cdn.pixabay.com/photo/2022/11/14/14/13/lake-7591750_1280.jpg" alt="img2" width="35px" height="35px">
+    </button>
+
+    <button class="btn" onclick="changeBgImage('https://cdn.pixabay.com/photo/2016/09/05/18/54/texture-1647380_1280.jpg')">
+      <img src="https://cdn.pixabay.com/photo/2016/09/05/18/54/texture-1647380_1280.jpg" alt="img3" width="35px" height="35px">
+    </button>
+
+    <button class="btn" onclick="changeBgImage('https://cdn.pixabay.com/photo/2017/08/12/23/29/background-texture-2635740_1280.jpg')">
+        <img src="https://cdn.pixabay.com/photo/2017/08/12/23/29/background-texture-2635740_1280.jpg" alt="img4" width="35px" height="35px">
+    </button>
+</div>
+
+<div id="font">
+    <fieldset><h2>Choose Font Family</h2><br></fieldset>
+ 
+    <span style="font-family: Verdana;"onclick="changeFont('Verdana')">Hello</span>
+    <span style="font-family: cursive;"onclick="changeFont('cursive')">
+Hello 
+    </span>
+    <span style="font-family: Impact;"onclick="changeFont('Impact')">
+Hello
+    </span>
+    <span style="font-family: Georgia;"onclick="changeFont('georgia')">Hello</span>
+</div>
+    </div>
+  </div>
+    <script src="script.js"></script>
+
+
+
+</body>
+</html>

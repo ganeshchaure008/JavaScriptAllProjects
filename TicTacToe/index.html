@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
+</head>
+<body>
+    <div id="parent">
+        <div id="main">
+            <h1>Tic Tac Toe</h1>
+            
+            <!-- Game board -->
+            <div id="game">
+                <div id="cell1" class="cell" onclick="playerClick('cell1')"></div>
+                <div id="cell2" class="cell" onclick="playerClick('cell2')"></div>
+                <div id="cell3" class="cell" onclick="playerClick('cell3')"></div>
+                <div id="cell4" class="cell" onclick="playerClick('cell4')"></div>
+                <div id="cell5" class="cell" onclick="playerClick('cell5')"></div>
+                <div id="cell6" class="cell" onclick="playerClick('cell6')"></div>
+                <div id="cell7" class="cell" onclick="playerClick('cell7')"></div>
+                <div id="cell8" class="cell" onclick="playerClick('cell8')"></div>
+                <div id="cell9" class="cell" onclick="playerClick('cell9')"></div>
+            </div>
+
+            <!-- Status and restart -->
+            <h1 id="turn">O's turn</h1>
+            <h1 id="result"></h1>
+            <button onclick="restart()">Restart</button>
+        </div>
+    </div>
+
+    <!-- Audio for sound effects -->
+    <audio id="moveSound" src="mouseclick.mp3"></audio>
+    <audio id="winSound" src="sounds/win.mp3"></audio>
+
+    <!-- Game logic -->
+    <script src="script.js"></script>
+</body>
+</html>

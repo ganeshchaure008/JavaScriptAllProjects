@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password validator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <center>
+        <h1>Password validator</h1>
+        <input 
+        id="inp"type="password"oninput="validatePassword(event.target.value)" placeholder="Enter your password">
+
+        <p id="length"></p>
+        <p id="uppercase"></p>
+        <p id="lowercase"></p>
+        <p id="special"></p>
+    </center>
+
+
+    <script src="script.js"></script>
+</body>
+</html>

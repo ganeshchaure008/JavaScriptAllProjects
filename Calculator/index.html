@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+<title>Calculator</title>
+      <link rel="shortcut icon" href="calcilogo.png" type="image/x-icon">
+</head>
+<body>
+    <div id="parent">
+        <div id="calculator">
+    <h1>🧮 Calculator 🧮</h1>
+<div id="main">
+   <input type="text" id="inp" readonly placeholder="You can use calci now...😊😊">
+   <div id="buttons">
+
+<button onclick="restart()">AC</button>
+<button onclick="deleteLast()">C</button>
+<button onclick="addDigitOrOperator('**','op')">**</button>
+<button onclick="addDigitOrOperator('/','op')">/</button>
+<button onclick="addDigitOrOperator(7, 'num')">7</button>
+<button onclick="addDigitOrOperator(8, 'num')">8</button>
+<button onclick="addDigitOrOperator(9,'num')">9</button>
+<button onclick="addDigitOrOperator('*','op')">*</button>
+<button onclick="addDigitOrOperator(4,'num')">4</button>
+<button onclick="addDigitOrOperator(5,'num')">5</button>
+<button onclick="addDigitOrOperator(6,'num')">6</button>
+<button onclick="addDigitOrOperator('-','op')">-</button>
+<button onclick="addDigitOrOperator(1,'num')">1</button>
+<button onclick="addDigitOrOperator(2,'num')">2</button>
+<button onclick="addDigitOrOperator(3,'num')">3</button>
+<button onclick="addDigitOrOperator('+','op')">+</button>
+<button onclick="addDigitOrOperator('%','op')">%</button>
+<button onclick="addDigitOrOperator(0,'num')">0</button>
+<button onclick="addDigitOrOperator('.','op')">.</button>
+<button onclick="calculate('=','op')">=</button>
+</div></div>
+    </div></div>
+   
+    <script src="script.js"></script>
+</body>
+</html>
