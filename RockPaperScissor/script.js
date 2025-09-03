@@ -4,6 +4,7 @@ const playerScoreEl=document.getElementById('playerScore')
 const aiScoreEl=document.getElementById('aiScore')
 const rounds=document.getElementById('rounds')
 const choices=document.querySelectorAll('.choice')
+const restart=document.getElementById('restart')
 
 rounds.addEventListener('change',()=>winningScore=parseInt(rounds.value))
 
@@ -16,6 +17,14 @@ let winner=getWinner(playerChoice,aiChoice)
 updateScore(winner)
 result.textContent=`You chose ${playerChoice}, AI chose ${aiChoice}. ${winner==='draw'?'It\'s a draw!':winner==='player'?'You win!':'AI wins!'}`
 })
+})
+
+restart.addEventListener('click',()=>{
+playerScore=0
+aiScore=0
+playerScoreEl.textContent=0
+aiScoreEl.textContent=0
+result.textContent='Make your move!'
 })
 
 function getAIChoice(){

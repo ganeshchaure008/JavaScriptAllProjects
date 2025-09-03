@@ -1,13 +1,37 @@
 function validateMob(mob){
-    if(mob.length>10){
-        alert("Mobile number cannot exceed 10 digits")
-        document.getElementById('inp').value = mob.slice(0,10)
-    }
+    const message = document.getElementById('message');
+    const input = document.getElementById('inp');
+    const submitBtn = document.getElementById('submitBtn');
 
-    let size = mob.length
+    // Clean input: allow only numbers
+    input.value = mob.replace(/\D/g, '');
 
-    if(mob.charCodeAt(size-1) <48 || mob.charCodeAt(size-1)>57){
-        alert("Mobile number can only have digit [0-9]")
-        document.getElementById('inp').value = mob.slice(0, size-1)
+    if(input.value.length === 0){
+        message.textContent = '';
+        submitBtn.disabled = true;
+        submitBtn.classList.remove('enabled');
     }
+    else if(input.value.length < 10){
+        message.textContent = 'Number must be 10 digits';
+        message.className = 'invalid';
+        submitBtn.disabled = true;
+        submitBtn.classList.remove('enabled');
+    }
+    else if(/^[6-9]\d{9}$/.test(input.value)){
+        message.textContent = 'Valid number ✔';
+        message.className = 'valid';
+        submitBtn.disabled = false;
+        submitBtn.classList.add('enabled');
+    }
+    else {
+        message.textContent = 'Invalid number ❌';
+        message.className = 'invalid';
+        submitBtn.disabled = true;
+        submitBtn.classList.remove('enabled');
+    }
+}
+
+function submitNumber(){
+    const input = document.getElementById('inp').value;
+    alert(`Your number ${input} has been successfully submitted!`);
 }

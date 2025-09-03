@@ -3,23 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password validator</title>
+    <title>Password Validator</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <center>
-        <h1>Password validator</h1>
+    <div class="container">
+        <h1>Password Validator</h1>
         <input 
-        id="inp"type="password"oninput="validatePassword(event.target.value)" placeholder="Enter your password">
-
-        <p id="length"></p>
-        <p id="uppercase"></p>
-        <p id="lowercase"></p>
-        <p id="special"></p>
-    </center>
-
-
+            id="inp"
+            type="password"
+            placeholder="Enter your password"
+            oninput="validatePassword(event.target.value)"
+        >
+        <div class="feedback">
+            <p id="length"></p>
+            <p id="uppercase"></p>
+            <p id="lowercase"></p>
+            <p id="special"></p>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
