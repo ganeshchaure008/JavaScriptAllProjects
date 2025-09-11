@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My E-Commerce Application</title>
+<style>
+    body { font-family: Arial, sans-serif; margin:0; background:#f4f4f4; }
+    header { background: black; padding: 10px 20px; color: orange; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; }
+    header input { padding:5px; width:200px; border:none; border-radius:3px; }
+    header .cart { cursor:pointer; font-weight:bold; position:relative; }
+    .cart-animation { position:absolute; top:-10px; right:-10px; background:orange; color:black; border-radius:50%; width:20px; height:20px; display:flex; justify-content:center; align-items:center; font-size:12px; animation: pop 0.3s ease; }
+    @keyframes pop { 0%{transform:scale(0)} 50%{transform:scale(1.2)} 100%{transform:scale(1)} }
+    .categories { background:#fff; padding:10px; display:flex; gap:10px; overflow-x:auto; }
+    .categories button { padding:6px 12px; border:1px solid #ccc; background:#fff; cursor:pointer; border-radius:3px; transition:0.3s; }
+    .categories button:hover { background:orange; color:black; }
+    .products { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:15px; padding:20px; }
+    .card { background:#fff; padding:10px; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,0.1); text-align:center; transition:transform 0.2s; position:relative; }
+    .card:hover { transform:scale(1.05); }
+    .card img { width:100%; height:150px; object-fit:cover; border-radius:5px; }
+    .card h3 { font-size:16px; margin:10px 0; }
+    .card p { color:green; font-weight:bold; }
+    .card button { background:orange; border:none; padding:8px; border-radius:3px; cursor:pointer; transition:0.3s; color:black; font-weight:bold; }
+    .card button:hover { background:black; color:orange; }
+    #cartPage, #billingPage, #orderSuccess { display:none; padding:20px; }
+    table { width:100%; border-collapse: collapse; background:#fff; }
+    table th, table td { border:1px solid #ccc; padding:10px; text-align:center; }
+    .qty-btn { padding:3px 8px; margin:0 3px; border:1px solid #ccc; cursor:pointer; background:white; }
+    .remove-btn { background:red; color:white; padding:5px 8px; border:none; border-radius:3px; cursor:pointer; }
+    .checkout-btn { background:green; color:white; padding:10px 15px; border:none; border-radius:3px; cursor:pointer; margin-top:10px; }
+    .form-group { margin-bottom:10px; }
+    label { display:block; margin-bottom:5px; }
+    input, select, textarea { width:100%; padding:8px; border:1px solid #ccc; border-radius:3px; }
+    .success-msg { background:#d4edda; padding:20px; border-radius:5px; text-align:center; }
+</style>
+</head>
+<body>
+
+<header>
+    <h2>Jay's E-Commerce</h2>
+    <input type="text" id="search" placeholder="Search products...">
+    <div class="cart" onclick="showCart()">🛒 Cart (<span id="cartCount">0</span>)</div>
+</header>
+
+<div class="categories">
+    <button onclick="filterCategory('All')">All</button>
+    <button onclick="filterCategory('Electronics')">Electronics</button>
+    <button onclick="filterCategory('Fashion')">Fashion</button>
+    <button onclick="filterCategory('Home')">Home</button>
+</div>
+
+<div id="productPage">
+    <div class="products" id="productList"></div>
+</div>
+
+<div id="cartPage">
+    <h2>Your Cart</h2>
+    <table id="cartTable">
+        <tr><th>Product</th><th>Price</th><th>Qty</th><th>Total</th><th>Action</th></tr>
+    </table>
+    <h3 id="cartTotal"></h3>
+    <button onclick="backToShop()">Back to Shop</button>
+    <button class="checkout-btn" onclick="goToBilling()">Proceed to Checkout</button>
+</div>
+
+<div id="billingPage">
+    <h2>Billing Details</h2>
+    <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="name">
+    </div>
+    <div class="form-group">
+        <label>Address</label>
+        <textarea id="address"></textarea>
+    </div>
+    <div class="form-group">
+        <label>Phone</label>
+        <input type="text" id="phone">
+    </div>
+    <div class="form-group">
+        <label>Payment Method</label>
+        <select id="payment">
+            <option>Cash on Delivery</option>
+            <option>Credit/Debit Card</option>
+            <option>UPI</option>
+        </select>
+    </div>
+    <button onclick="backToCart()">Back to Cart</button>
+    <button class="checkout-btn" onclick="placeOrder()">Place Order & Download Invoice</button>
+</div>
+
+<div id="orderSuccess">
+    <div class="success-msg">
+        <h2>✅ Order Placed Successfully!</h2>
+        <p>Thank you for shopping with us. Your order will be delivered soon.</p>
+        <button onclick="backToShop()">Continue Shopping</button>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const { jsPDF } = window.jspdf;
+
+  const products = [
+  {id:16,name:"Gaming Mouse",price:1499,category:"Electronics",img:"https://images.unsplash.com/photo-1632160871990-be30194885aa?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGdhbWluZyUyMG1vdXNlfGVufDB8fDB8fHww"},
+  {id:17,name:"Mechanical Keyboard",price:2999,category:"Electronics",img:"https://images.unsplash.com/photo-1664813398575-819b46e5ab8d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fG1lY2hhbmljYWwlMjBrZXlib2FyZHxlbnwwfHwwfHx8MA%3D%3D"},
+  {id:18,name:"4K Monitor",price:15999,category:"Electronics",img:"https://plus.unsplash.com/premium_photo-1664699099341-b7c4229a8d97?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fDRLJTIwbW9uaXRvcnxlbnwwfHwwfHx8MA%3D%3D"},
+  {id:19,name:"USB-C Hub",price:1299,category:"Electronics",img:"https://images.unsplash.com/photo-1616578273577-5d54546f4dec?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8VVNCJTIwQyUyMEh1YnxlbnwwfHwwfHx8MA%3D%3D"},
+  {id:20,name:"External Hard Drive",price:3999,category:"Electronics",img:" https://media.istockphoto.com/id/2135718673/photo/external-hard-disk-drive-connected-to-a-modern-laptop-via-usb.webp?a=1&b=1&s=612x612&w=0&k=20&c=FA4GfG_q19psbyAQPvSYOsnI7mqfhmvPvahFG7zZDjQ="},
+  {id:21,name:"Wireless Charger",price:999,category:"Electronics",img:"  https://media.istockphoto.com/id/1215029140/photo/modern-smart-phone-wireless-charging-on-carbon-fibre-surface.webp?a=1&b=1&s=612x612&w=0&k=20&c=cuUdZEj6-gJE36T2gNRykV638T83HCXL_Ah0VSyTQBc="},
+  {id:22,name:"Noise Cancelling Earbuds",price:4999,category:"Electronics",img:"  https://images.unsplash.com/photo-1662348316397-7afeb1045fd7?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fG5vaXNlJTIwY2FuY2VsbGluZyUyMGVhcmJ1ZHN8ZW58MHx8MHx8fDA%3D"},
+  {id:23,name:"Fitness Tracker",price:1999,category:"Electronics",img:"  https://media.istockphoto.com/id/1008503930/photo/fitness-bracelet-or-tracker.jpg?s=612x612&w=0&k=20&c=3bjOeJaw_5shk84Vp8mcsNRlAdKZqnP_A46scWeKyg8="},
+  {id:24,name:"Tablet 10 inch",price:14999,category:"Electronics",img:"  https://media.istockphoto.com/id/1563269360/photo/little-girl-is-happily-playing-with-her-ipad-lying-comfortably-on-her-bed-her-face-lights-up.jpg?s=612x612&w=0&k=20&c=Fg8GJdp-bl3NmtmpFYS9e7rabKig6TlyYy-48xv6PsI="},
+  {id:25,name:"Smart Home Hub",price:7999,category:"Electronics",img:" https://media.istockphoto.com/id/1377702352/photo/tablet-with-smart-home-app-on-home-desk-concept-of-home-automatization-conrol-app-with.jpg?s=612x612&w=0&k=20&c=2cTOcKCIDQuYE9wXvzUnaz3VlSTjiDVEaGqj_GaX7Xw="},
+  {id:26,name:"HD Webcam",price:2599,category:"Electronics",img:" https://media.istockphoto.com/id/158867807/photo/web-camera.jpg?s=612x612&w=0&k=20&c=1paTwGFZC3e7p5w57E4RKM-nqAZz9Z4-pGQxKoiCTmY="},
+  {id:27,name:"Bluetooth Speaker",price:1999,category:"Electronics",img:" https://media.istockphoto.com/id/1395191584/photo/bluetooth-speaker-isolated-on-white.jpg?s=612x612&w=0&k=20&c=pUaUi5MSjJbimwd_0kCcokPeXt4XyaCt1Rt6Khwersc="},
+  {id:28,name:"Smartphone 5G",price:17999,category:"Electronics",img:" https://media.istockphoto.com/id/1150283469/photo/5g-mobile-phone-network-security-connection-internet-communication.jpg?s=612x612&w=0&k=20&c=ihrIGYCMDlirmgFYR44oIVqE9JCkx5rvxYtG9wdF9rs= "},
+  {id:29,name:"Smartwatch",price:5999,category:"Electronics",img:"https://images.unsplash.com/photo-1660844817855-3ecc7ef21f12"},
+  {id:30,name:"Laptop",price:59999,category:"Electronics",img:" https://media.istockphoto.com/id/173239778/photo/laptop-isolated-on-white.jpg?s=612x612&w=0&k=20&c=WACKEyyuIemdxC6N2ctko3jrZ9dcqgASufjZdBsQ2fA="},
+  {id:31,name:"Men's Formal Shirt",price:999,category:"Fashion",img:" https://media.istockphoto.com/id/1090878446/photo/portrait-of-young-male-teacher-in-blue-shirt-isolated-on-gray-background.jpg?s=612x612&w=0&k=20&c=QzyYapQ5xoiLDyg8MIMy6LT6tCFhtpuDoO3fHrHczkw="},
+  {id:32,name:"Women's Dress",price:2499,category:"Fashion",img:"  https://media.istockphoto.com/id/1324844508/photo/gorgeous-woman-wearing-beautiful-maxi-dress-posing-against-wall-with-a-wild-grape.jpg?s=612x612&w=0&k=20&c=BJrcuLt0m5Hm6zOhgO-E0TGqIxzWKdecgw1xcOu1aN4="},
+  {id:33,name:"Casual Sneakers",price:1999,category:"Fashion",img:" https://media.istockphoto.com/id/1276342010/photo/top-view-of-pair-of-brown-shoes-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=3rGNZTZj3UX_APm7UrnqQDrkdojt2QyWQCg4SjRzOQ4="},
+  {id:34,name:"Leather Belt",price:799,category:"Fashion",img:" https://media.istockphoto.com/id/523818848/photo/brown-leather-belt.jpg?s=612x612&w=0&k=20&c=DxKzRhgSVBl05Jtky4CrR9vf46twZRIZZhN5vXERPls="},
+  {id:35,name:"Formal Shoes",price:2999,category:"Fashion",img:" https://media.istockphoto.com/id/523113015/photo/mens-brown-shoes.jpg?s=612x612&w=0&k=20&c=3DL6Hz1Is_XaARpwTopjL_uVJFeXu0BWePYM0WT9GW0="},
+  {id:36,name:"Hoodie",price:1499,category:"Fashion",img:" https://media.istockphoto.com/id/2193523594/photo/black-hoodie-shirt-mock-up-3d-rendering.jpg?s=612x612&w=0&k=20&c=Xn9nCZtSHLWwaRX9apCN-bHOR1po9hVhg1h33ZhSkfI="},
+  {id:37,name:"Summer Sandals",price:899,category:"Fashion",img:" https://media.istockphoto.com/id/1221570337/photo/straw-beach-sandals-on-the-sand-by-the-sea-summer-holidays-a-small-wooden-sign-with-the.jpg?s=612x612&w=0&k=20&c=SlA2HPCPlUPl5BUKMel8XVkgSLGsGoe4igZr9HJ-UAo="},
+  {id:38,name:"Backpack",price:1299,category:"Fashion",img:" https://media.istockphoto.com/id/2167589456/photo/yellow-backpack-opened-isolated-on-white-school-bag-advertisement-design-knapsack-rucksack.jpg?s=612x612&w=0&k=20&c=5B7A5M35ZEcneBbRoLWkIpPcij1HKTdPtkXEm71MMKI="},
+  {id:39,name:"Socks Pack",price:499,category:"Fashion",img:"https://media.istockphoto.com/id/1495192508/photo/pack-of-color-socks-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=Qf-9U-NRt470fKRsFgaeHlSrM2uL_Yvx_RgeDRAcSsM="},
+  {id:40,name:"Winter Gloves",price:699,category:"Fashion",img:" https://media.istockphoto.com/id/182238830/photo/winter-gloves.jpg?s=612x612&w=0&k=20&c=2jgdQoOTVJSBdIDPkH5vEWrzHoB_d0CB9rrfbm53yNo="},
+  {id:41,name:"Scarf",price:599,category:"Fashion",img:" https://media.istockphoto.com/id/928246962/photo/indian-styled-colorful-scarves.jpg?s=612x612&w=0&k=20&c=mxZAjvYHxjPdHZw8KdeIikyHEUjxo5VRAIAHJOxf6rA="},
+  {id:42,name:"Sun Hat",price:699,category:"Fashion",img:"https://media.istockphoto.com/id/1340921422/photo/beach-hat-with-scarf-tied.jpg?s=612x612&w=0&k=20&c=fRy2yE1yc5EKoV8LhuBq4MDCvthpfLegoxarR1MwImU="},
+  {id:43,name:"Jeans",price:1299,category:"Fashion",img:" https://media.istockphoto.com/id/1023017016/photo/pile-of-blue-denim-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=-iFTjZIl19_tkw4Bx9Sl2DsyCIXlFMnGS88MzdHQSCE="},
+  {id:44,name:"Sports Jacket",price:3999,category:"Fashion",img:" https://media.istockphoto.com/id/1422809155/photo/mens-jacket-shirt-and-sports-shorts-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=IPhw3lgdXhNRNfRrccLlFdkF3zkLvGCttTdmIOJTmZM="},
+  {id:45,name:"Wrist Watch",price:1999,category:"Fashion",img:" https://media.istockphoto.com/id/1368179045/photo/a-silver-stainless-steel-analog-watch.jpg?s=612x612&w=0&k=20&c=UyKrdFcqdfWnPWeJcDRdkhI0IoJqT8C5d-hc7TMjyr0="},
+  {id:46,name:"Coffee Maker",price:2499,category:"Home",img:"https://media.istockphoto.com/id/177395430/photo/a-black-coffee-maker-with-green-led-lights.jpg?s=612x612&w=0&k=20&c=XWaVCaA1SUuZIf6wKpfIJSnPT32djdgWMC7d7Y89BuA="},
+  {id:47,name:"Air Purifier",price:8999,category:"Home",img:" https://media.istockphoto.com/id/1277516956/photo/generic-air-purifier-cleaning-viruses-and-bacteria.jpg?s=612x612&w=0&k=20&c=E8KYrKCS9VxvV5Z70fvt5_gkAMW9jlvsinKx4vsPFfc="},
+  {id:48,name:"Microwave Oven",price:6999,category:"Home",img:" https://media.istockphoto.com/id/174494893/photo/microwave-oven.jpg?s=612x612&w=0&k=20&c=-bfnbmLgcZLr9dw52FlGa7pUqNHkCq407EquDXMcDjI="},
+  {id:49,name:"Table Lamp",price:799,category:"Home",img:" https://media.istockphoto.com/id/1136852492/photo/lamp-on-table-with-painted-wall-background-home-energy-utilities-electric-lighting-fixtures.jpg?s=612x612&w=0&k=20&c=2A2Te56UmRDTs3wZj7ZI9NHofPa-D0qs9kpwVkNAYgc="},
+  {id:50,name:"Recliner Sofa",price:19999,category:"Home",img:"https://media.istockphoto.com/id/136382413/photo/tv-chair-in-the-living-room.jpg?s=612x612&w=0&k=20&c=culdzytlOBuomblAvYAOI-LTLzfT5p4r_yiOyv0P2RM="},
+  {id:51,name:"Dining Table Set",price:14999,category:"Home",img:" https://media.istockphoto.com/id/183812346/photo/dining-table-and-chairs.jpg?s=612x612&w=0&k=20&c=AevdOcPjHRkFF2PhkbQfO6WNh0iLIKlheVxGicX693s="},
+  {id:52,name:"Curtains Set",price:2999,category:"Home",img:" https://media.istockphoto.com/id/1277338988/photo/beautiful-variety-of-colors-fabric-curtains-textured-or-drapes-interior-modern-luxury-room.jpg?s=612x612&w=0&k=20&c=kriArEhXbhbFowZqHGhSY4UuIqg5NFIC5yrx8nVYAk4="},
+  {id:53,name:"Wall Clock",price:999,category:"Home",img:" https://media.istockphoto.com/id/1221699998/photo/round-metal-clock-on-white-wall.jpg?s=612x612&w=0&k=20&c=lkXD5dpnYFQZts8-S2XrmsFnnbVWMEnmPphSYmQVtrQ="},
+  {id:54,name:"Bookshelf",price:4999,category:"Home",img:" https://media.istockphoto.com/id/1207897525/photo/bookshelf-in-hall-room-with-lamp-and-books.jpg?s=612x612&w=0&k=20&c=eLY02EGr60v8wXgIQ-1Tdlo22PSLachsCV9wTIJCwp8="},
+  {id:55,name:"Ceiling Fan",price:3999,category:"Home",img:" https://media.istockphoto.com/id/1429196056/photo/ceiling-fan-in-motion.jpg?s=612x612&w=0&k=20&c=taaHdXSSqQUPYWfZiaGTUmXVA7GBBkp_7bXGa3RjSR4="},
+  {id:56,name:"Electric Kettle",price:1499,category:"Home",img:" https://media.istockphoto.com/id/93238259/photo/electric-kettle-and-cup.jpg?s=612x612&w=0&k=20&c=YUQVebL_w8kmJzEFSXhM3nj_L1X-wdTsXeDsqT71Pxo="},
+  {id:57,name:"Water Purifier",price:6999,category:"Home",img:" https://media.istockphoto.com/id/1284076303/photo/household-filtration-system-water-treatment-concept-use-of-water-filters-at-home-glass-of.jpg?s=612x612&w=0&k=20&c=uNUi9ExWRR4xoeQ41aYcNvwbcgvj9GgZPOVf8DWuEQk="},
+  {id:58,name:"Floor Lamp",price:1999,category:"Home",img:" https://media.istockphoto.com/id/1298508477/photo/dark-empty-room-with-lamp-shade-potted-plant-and-parquet-floor-blank-wall-mock-up.jpg?s=612x612&w=0&k=20&c=gckRSZ8VawSNu3hQDvzhlsTjuj-WDwS5NlXtnWA2vNU="},
+  {id:59,name:"Bed Sheet Set",price:2999,category:"Home",img:" https://media.istockphoto.com/id/186699516/photo/blankets-and-pillow.jpg?s=612x612&w=0&k=20&c=83U4aOVrbQxsYGT6nzhJ0bywSlmtAgQ8ClrD8W9TL6Q="},
+  {id:60,name:"Mattress",price:10999,category:"Home",img:" https://media.istockphoto.com/id/1468542227/photo/woman-touching-soft-white-mattress-on-bed-indoors-closeup.jpg?s=612x612&w=0&k=20&c=t7AGzyflSYu2XW7q2MJRFGl6rbgzrwmG9qcF1SUn6Hc="},
+  {id:61,name:"Smart TV",price:29999,category:"Electronics",img:"  https://media.istockphoto.com/id/467946398/photo/contemporary-curved-led-smart-tv-design.jpg?s=612x612&w=0&k=20&c=s-eIL1kSR1YalWVGFk9sIvt0XbJMQGIlLlzUUbw6jLA="},
+  {id:62,name:"Bluetooth Headphones",price:3499,category:"Electronics",img:" https://media.istockphoto.com/id/1412240771/photo/headphones-on-white-background.jpg?s=612x612&w=0&k=20&c=DwpnlOcMzclX8zJDKOMSqcXdc1E7gyGYgfX5Xr753aQ= "},
+  {id:63,name:"Gaming Console",price:24999,category:"Electronics",img:" https://media.istockphoto.com/id/1406633927/photo/close-up-of-male-hands-holding-white-wireless-gamepad-against-white-computer-dream-desk.jpg?s=612x612&w=0&k=20&c=Blc6pTCOpbG70PX0Q_3Tf9P5beFUdIudv7hz6r_D3LU= "},
+  {id:64,name:"Digital Camera",price:19999,category:"Electronics",img:" https://media.istockphoto.com/id/185278433/photo/black-digital-slr-camera-in-a-white-background.jpg?s=612x612&w=0&k=20&c=OOCbhvOF0W-eVhhrm-TxbgLfbKhFfs4Lprjd7hiQBNU= "},
+  {id:65,name:"Smart Speaker",price:4999,category:"Electronics",img:" https://media.istockphoto.com/id/1143391541/photo/assistant-smart-speaker-with-artificial-intelligence-concept.jpg?s=612x612&w=0&k=20&c=gHtb7B63eC9g4tNO5PRv1x00IqqtVwjgXuTiHTqsxNU= "},
+  {id:66,name:"Wireless Router",price:2499,category:"Electronics",img:"  https://media.istockphoto.com/id/154948072/photo/a-wireless-router-showing-signal-beams.jpg?s=612x612&w=0&k=20&c=JISaIR8drlt0Ewm7ThLsC8XOBr4Vs4GNAyKTaQwpUmQ="},
+  {id:67,name:"Action Camera",price:12999,category:"Electronics",img:"  https://media.istockphoto.com/id/1310250081/photo/new-4k-action-camera-on-a-suction-mount-in-black-color-isolated-white-background.jpg?s=612x612&w=0&k=20&c=SB8mVrlVLYTllQ5Ij7P3TX3eqA2Pm6P1VtZ-NHq2ah0="},
+  {id:69,name:"VR Headset",price:14999,category:"Electronics",img:" https://media.istockphoto.com/id/1249503408/photo/modern-vr-glasses-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=dX5PSe0-lhMo7mZ4uL5Tffx8jwgN7-xpFKe2U8efvLM= "},
+  {id:70,name:"Portable SSD",price:3999,category:"Electronics",img:" https://media.istockphoto.com/id/1366928542/photo/portable-ssd-drive-disk.jpg?s=612x612&w=0&k=20&c=rq9zovRt4DJVZvlpiZVAi1_7HgezQlvxmnDTnSwneKo= "},
+  {id:71,name:"Winter Jacket",price:3499,category:"Fashion",img:" https://media.istockphoto.com/id/483534063/photo/winter-jacket-isolated-on-white.jpg?s=612x612&w=0&k=20&c=Eq80D-i6RBHlFPJaBYt4r2VpwGMRjs8P7xulYANNxqU="},
+  {id:72,name:"Leather Jacket",price:4999,category:"Fashion", img:" https://media.istockphoto.com/id/505623612/photo/leather-jacket.jpg?s=612x612&w=0&k=20&c=3kqezwMgO8IXB6j1ofeqWG5jEbwueutWCPj8qGXVR3E="},
+  {id:73,name:"Sports Shoes",price:2499,category:"Fashion", img:"https://media.istockphoto.com/id/1383514661/photo/sneakers.jpg?s=612x612&w=0&k=20&c=32k0rAMwRVmU2lDGagyi6L2_2nZCgXa6kWl8Xbnks8w= "},
+  {id:74,name:"Sunglasses",price:999,category:"Fashion",   img:"https://media.istockphoto.com/id/1203493855/photo/black-aviator-sunglasses-with-reflection-on-black-background.jpg?s=612x612&w=0&k=20&c=WzgivjSLJ73J6GQ2rzmvQ-x6VbSLW8Cvy09kCOpSnYo= "},
+  {id:75,name:"Wristband",price:499,category:"Fashion", img:"https://media.istockphoto.com/id/1318401740/photo/indian-gold-jewellery-stock-photo.jpg?s=612x612&w=0&k=20&c=naiOnSyQfwQLWr2VN4y53BR7L51VFnc8u7wI2wVWQUg= "},
+  {id:76,name:"Cap",price:399,category:"Fashion", img:" https://media.istockphoto.com/id/526131500/photo/hat-on-white-background.jpg?s=612x612&w=0&k=20&c=wEaZqxqsCAsyhT-qsWh9QRxc1Eu0-kmkkfMJTdmS2qY="},
+  {id:77,name:"T-Shirt",price:799,category:"Fashion", img:" https://media.istockphoto.com/id/483960103/photo/blank-black-t-shirt-front-with-clipping-path.jpg?s=612x612&w=0&k=20&c=d8qlXILMYhugXGw6zX7Jer2SLPrLPORfsDsfRDWc-50="},
+  {id:78,name:"Shorts",price:899,category:"Fashion", img:"https://media.istockphoto.com/id/1542662833/photo/stone-colour-rip-stop-shorts-with-white-draw-cord.jpg?s=612x612&w=0&k=20&c=QIg4QAXwjgv9l1mWqAYcXpwCktalmjWAaeRTxrKi-Rs= "},
+  {id:79,name:"Sweatshirt",price:1299,category:"Fashion", img:" https://media.istockphoto.com/id/1671258160/photo/sweatshirt.jpg?s=612x612&w=0&k=20&c=ebGrkd_A6-vmX6jn-eh1qxCtHYYfk0zCX8rD1aMlc_M="},
+  {id:80,name:"Pajama Set",price:999,category:"Fashion", img:" https://media.istockphoto.com/id/1389851445/photo/house-slippers-sleeping-mask-and-pajamas-on-light-blue-background-flat-lay.jpg?s=612x612&w=0&k=20&c=QVvPYjH4iMtMkThVxHXVsaWKM3jo5JLuK6Z8eRGvufY="}, 
+  {id:81,name:"Vacuum Cleaner",price:4999,category:"Home", img:" https://media.istockphoto.com/id/184142618/photo/vacuum-cleaner.jpg?s=612x612&w=0&k=20&c=fgsbS4GHsDaki9e2gDHSwmlaQV-XyBaYwEwnxEj2BdE="},
+  {id:83,name:"Toaster",price:1299,category:"Home", img:" https://media.istockphoto.com/id/1185052433/photo/modern-classic-toaster-isolated-white-background.jpg?s=612x612&w=0&k=20&c=19ktc8VztdiE_CYI-SldgliGX1LcRTeol9HvqdV-HkI="},
+  {id:85,name:"Induction Cooktop",price:3499,category:"Home", img:" https://media.istockphoto.com/id/123544650/photo/cooktop.jpg?s=612x612&w=0&k=20&c=wRD5rK5LoCLcHCrGhuqxUPKOkt6Cznf_rDp_r_iL06E="},
+  {id:86,name:"Pressure Cooker",price:999,category:"Home", img:"https://media.istockphoto.com/id/675233054/photo/pressure-cooker-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=RS2aZS3iEHlizLtWyBy3af6JdEiG05o4C0jK9NpqfkQ= "},
+  {id:87,name:"Dishwasher",price:19999,category:"Home", img:"https://media.istockphoto.com/id/1347317594/photo/energy-saver-appliance.jpg?s=612x612&w=0&k=20&c=unE1AkKMHlN9Z8Ogxb7NhF95HSFTwMCYpYmahsenuPo= "},
+  {id:88,name:"Blender",price:2499,category:"Home", img:"https://media.istockphoto.com/id/471441539/photo/electric-blender.jpg?s=612x612&w=0&k=20&c=QZtVpLn63EvLwhC2BAAvtkLyaaMsf75-dP9lyAeiWrM= "},
+  {id:89,name:"Air Fryer",price:3499,category:"Home", img:"https://media.istockphoto.com/id/1352201890/photo/french-fries-cooked-in-air-fryer.jpg?s=612x612&w=0&k=20&c=JVeBFsSifBXphy85pAg5_Ry-fHDQFUWGg-RJWsjy-fQ= "},
+  {id:90,name:"Slow Cooker",price:2999,category:"Home", img:"https://media.istockphoto.com/id/173629383/photo/photograph-of-silver-crockpot-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=BUrOwEhYdqm7nINqruslTXNVYVWTTrrjT_CRCayUT1M= "},
+  {id:91,name:"Electric Grill",price:3999,category:"Home", img:" https://media.istockphoto.com/id/1145031142/photo/electronic-grill.jpg?s=612x612&w=0&k=20&c=DQN2TyCB2tI0wRfrwEROxJEAWuDN_DlDHU-8o98UTlM="},
+  {id:92,name:"Food Processor",price:4999,category:"Home", img:"https://media.istockphoto.com/id/500455404/photo/single-electric-food-processor-in-retail-store.jpg?s=612x612&w=0&k=20&c=tdZ79YLvfm4ek_s4sKS_fit28PFauRXwXRJD3kylfSQ= "},
+  {id:93,name:"Smart Thermostat",price:5999,category:"Home", img:"https://media.istockphoto.com/id/1245593605/photo/a-person-using-a-smart-phone-application-saving-energy-with-a-wireless-smart-thermostat-on-a.jpg?s=612x612&w=0&k=20&c=ICav2CDSevD4O20LFNuiFJoAwOSdZPr1RYLwzRbD1Fk= "},
+  {id:94,name:"Smart Light Bulbs",price:1999,category:"Home", img:" https://media.istockphoto.com/id/1215074546/photo/controlling-light-bulb-with-mobile-device.jpg?s=612x612&w=0&k=20&c=sz-8_kbsCsaAKLCfsgFFu4SSyONwwMrNA38JXdoFJOc="},
+  {id:95,name:"Smart Plugs",price:999,category:"Home", img:" https://media.istockphoto.com/id/1402116577/photo/smart-socket-in-the-interior-of-the-house.jpg?s=612x612&w=0&k=20&c=56QyZJwtrDS7Eb62Ga_PxPsbYYx8a6T2wp1v_W0fLAo="},
+  {id:96,name:"Smart Security Camera",price:2999,category:"Home", img:"https://media.istockphoto.com/id/1471748203/photo/security-camera-high-tech-smart-home-security-technology.jpg?s=612x612&w=0&k=20&c=XRjAF2EUVSNQcHjHzwwBsBe5BxY5GlbK1vpKErwKmn8= "},
+  {id:97,name:"Smart Doorbell",price:3999,category:"Home", img:"https://media.istockphoto.com/id/2206372514/photo/shallow-focus-of-a-popular-battery-powered-wireless-doorbell-and-integral-camera-seen-located.jpg?s=612x612&w=0&k=20&c=nMuJZlNYufa0WbfAut2xGlN9Hmjejm8LjsYP_Z4rjrk= "},
+  {id:98,name:"Smart Lock",price:4999,category:"Home", img:"https://media.istockphoto.com/id/1353428273/photo/shallow-focus-of-a-homeowner-seen-testing-a-newly-installed-wifi-smart-doorbell.jpg?s=612x612&w=0&k=20&c=UhnRkOKuA4I7YlnbI9JVjSh8Fumx0rfWRujNNquXUSw= "},
+  {id:99,name:"Smart Smoke Detector",price:1999,category:"Home", img:" https://media.istockphoto.com/id/1460269465/photo/home-owner-seen-performing-a-weekly-test-on-a-ceiling-mounted-smoke-alarm.jpg?s=612x612&w=0&k=20&c=sOSFCkfIzaNXwHbnGFpp-Pw57nRxiqCDKuYNJhXzxvk="},
+  {id:100,name:"Smart Water Leak Detector",price:2499,category:"Home", img:" https://media.istockphoto.com/id/2187791310/photo/water-leak-sensor-alert-smart-water-sensor-can-automatically-shut-off-a-solenoid-valve.jpg?s=612x612&w=0&k=20&c=zuZXfK7_xDCUoz5twEeKb7YsZBEvNX0e_w6OZqIWUiY="}
+];
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+function saveCart() { localStorage.setItem("cart", JSON.stringify(cart)); }
+
+function renderProducts(list) {
+    const productList = document.getElementById("productList");
+    productList.innerHTML = "";
+    list.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<img src="${p.img}" alt="${p.name}">
+        <h3>${p.name}</h3>
+        <p>₹${p.price}</p>
+        <button onclick="addToCart(${p.id}, this)">Add to Cart</button>`;
+        productList.appendChild(card);
+    });
+}
+
+function filterCategory(cat) { 
+    if(cat==="All") renderProducts(products);
+    else renderProducts(products.filter(p=>p.category===cat));
+}
+
+function addToCart(id, btn) {
+    const item = cart.find(c=>c.id===id);
+    if(item) item.qty++;
+    else {
+        const product = products.find(p=>p.id===id);
+        cart.push({...product, qty:1});
+    }
+    updateCartCount();
+    saveCart();
+    animateCart(btn);
+}
+
+function animateCart(btn){
+    const anim = document.createElement("div");
+    anim.className="cart-animation";
+    anim.innerText="✓";
+    btn.appendChild(anim);
+    setTimeout(()=>anim.remove(),500);
+}
+
+function updateCartCount(){
+    document.getElementById("cartCount").innerText = cart.reduce((sum,i)=>sum+i.qty,0);
+}
+
+function showCart(){
+    hideAllPages();
+    document.getElementById("cartPage").style.display="block";
+    renderCart();
+}
+
+function changeQty(id,amount){
+    const item = cart.find(c=>c.id===id);
+    if(item){
+        item.qty+=amount;
+        if(item.qty<=0) cart = cart.filter(c=>c.id!==id);
+    }
+    saveCart();
+    renderCart();
+    updateCartCount();
+}
+
+function removeItem(id){
+    cart = cart.filter(c=>c.id!==id);
+    saveCart();
+    renderCart();
+    updateCartCount();
+}
+
+function renderCart(){
+    const table=document.getElementById("cartTable");
+    table.innerHTML="<tr><th>Product</th><th>Price</th><th>Qty</th><th>Total</th><th>Action</th></tr>";
+    let total=0;
+    cart.forEach(item=>{
+        const itemTotal=item.price*item.qty;
+        total+=itemTotal;
+        const tr = document.createElement("tr");
+        tr.innerHTML=`<td>${item.name}</td>
+        <td>₹${item.price}</td>
+        <td><button class="qty-btn" onclick="changeQty(${item.id},-1)">-</button>${item.qty}<button class="qty-btn" onclick="changeQty(${item.id},1)">+</button></td>
+        <td>₹${itemTotal}</td>
+        <td><button class="remove-btn" onclick="removeItem(${item.id})">Remove</button></td>`;
+        table.appendChild(tr);
+    });
+    document.getElementById("cartTotal").innerText="Total: ₹"+total;
+}
+
+function goToBilling(){
+    if(cart.length===0){ alert("Your cart is empty!"); return;}
+    hideAllPages();
+    document.getElementById("billingPage").style.display="block";
+}
+
+function placeOrder(){
+    const name=document.getElementById("name").value.trim();
+    const address=document.getElementById("address").value.trim();
+    const phone=document.getElementById("phone").value.trim();
+    if(!name||!address||!phone){ alert("Please fill all fields."); return; }
+    generateInvoicePDF(name,address,phone,cart);
+    cart=[];
+    saveCart();
+    updateCartCount();
+    hideAllPages();
+    document.getElementById("orderSuccess").style.display="block";
+}
+
+function backToCart(){ hideAllPages(); document.getElementById("cartPage").style.display="block"; renderCart(); }
+function backToShop(){ hideAllPages(); document.getElementById("productPage").style.display="block"; }
+
+function hideAllPages(){
+    document.getElementById("productPage").style.display="none";
+    document.getElementById("cartPage").style.display="none";
+    document.getElementById("billingPage").style.display="none";
+    document.getElementById("orderSuccess").style.display="none";
+}
+
+document.getElementById("search").addEventListener("input", e=>{
+    const val=e.target.value.toLowerCase();
+    renderProducts(products.filter(p=>p.name.toLowerCase().includes(val)));
+});
+
+function generateInvoicePDF(name,address,phone,cart){
+    const doc=new jsPDF();
+    doc.setFontSize(18); doc.setTextColor(255,165,0);
+    doc.text("Jay's E-Commerce",14,20);
+    doc.setFontSize(12); doc.setTextColor(0,0,0);
+    doc.text(`Customer Name: ${name}`,14,30);
+    doc.text(`Address: ${address}`,14,36);
+    doc.text(`Phone: ${phone}`,14,42);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`,14,48);
+    doc.autoTable({
+        startY:55,
+        head:[["ID","Product","Price","Qty","Total"]],
+        body:cart.map(p=>[p.id,p.name,"₹"+p.price,p.qty,"₹"+(p.price*p.qty)])
+    });
+    doc.text("_______________________",14,doc.lastAutoTable.finalY+15);
+    doc.text("Customer Signature",14,doc.lastAutoTable.finalY+22);
+    doc.text("Jay's E-Commerce Stamp",150,doc.lastAutoTable.finalY+22);
+    doc.save("invoice.pdf");
+}
+renderProducts(products);
+updateCartCount();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</body>
+</html>
